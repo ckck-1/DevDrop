@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # Main API Gateway / Backend
+  api:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=production
+      - MONGO_URI=mongodb://mongo:27017/ai-marketplace
+      - REDIS_HOST=redis
+    depends_on:
+      - mongo
+      - redis
+
+  # Dedicated AI Worker
+  ai-worker:
+    build: .
+    command: node src/workers/ai.worker.js
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/ai-marketplace
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+
+  # Dedicated Notification Worker
+  notification-worker:
+    build: .
+    command: node src/workers/notification.worker.js
+    environment:
+      - REDIS_HOST=redis
+    depends_on:
+      - redis
+
+  # Infrastructure
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  mongo-data:

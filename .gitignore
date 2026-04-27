@@ -1,0 +1,53 @@
+# --- Environment / Secrets ---
+.env
+.env.local
+.env.production
+*.pem
+*.key
+
+# --- Dependencies ---
+node_modules/
+jspm_packages/
+package-lock.json (optional: keep if you want strict versioning)
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- IDEs / Editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# --- Build / Dist ---
+dist/
+build/
+*.tsbuildinfo
+
+# --- Docker ---
+.dockerignore
+# (Keep docker-compose.yml, but ignore local overrides if used)
+docker-compose.override.yml
+
+# --- Logs / Diagnostics ---
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# --- Coverage / Testing ---
+coverage/
+.nyc_output/
+.jest/
+
+# --- Databases / Storage ---
+# Local MongoDB data (if not using volumes)
+data/
+# Uploaded developer resumes/assets
+public/uploads/
