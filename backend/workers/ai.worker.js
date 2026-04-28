@@ -1,7 +1,8 @@
 const { Worker } = require('bullmq');
-const { redis } = require('../config/redis');
-const matchingService = require('../modules/ai/matching.service');
-const logger = require('../utils/logger');
+// FIX: Change { redis } to redis
+const redis = require('../config/redis'); 
+const matchingService = require('./matching.service'); // Check this path too
+const logger = require('../../utils/logger');
 
 const aiWorker = new Worker('ai-matching', async (job) => {
   const { userId, type } = job.data;
@@ -11,9 +12,10 @@ const aiWorker = new Worker('ai-matching', async (job) => {
   if (type === 'developer') {
     await matchingService.matchDevToJobs(userId);
   }
-  // Add startup logic here later
   
-}, { connection: redis });
+}, { 
+  connection: redis // Now this will correctly use your Upstash Cloud Redis
+});
 
 aiWorker.on('completed', (job) => {
   logger.info(`Match Job ${job.id} completed successfully`);

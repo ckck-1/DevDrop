@@ -1,7 +1,7 @@
 const authService = require('./auth.service');
 const { sendSuccess, sendError } = require('../../utils/response');
 
-exports.register = async (req, res) => {
+exports.register = async (req, res, next) => {
   try {
     const { email, password, role, name } = req.body;
     
@@ -9,13 +9,15 @@ exports.register = async (req, res) => {
       return sendError(res, 'Invalid role', 400);
     }
     
+    // Let the service handle registration AND email sending logic
     const result = await authService.register(email, password, role, name);
-    sendSuccess(res, result, 'Registration successful', 201);
-    const { user, token } = await this.registerLogic(email, password, role, name);
-    await this.sendVerificationEmail(user._id, user.email);
-    return { user, token };
+    
+    // Send ONE response and stop
+    return sendSuccess(res, result, 'Registration successful', 201);
+    
   } catch (error) {
-    sendError(res, error.message, 400);
+    // If authService fails, it caught here
+    return sendError(res, error.message, 400);
   }
 };
 

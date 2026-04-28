@@ -1,6 +1,7 @@
+require('dotenv').config(); // Ensure this is at the top
 const app = require('./app');
 const { connectDB } = require('./config/db');
-const { connectRedis } = require('./config/redis');
+const redis = require('./config/redis'); // Import the instance directly
 const logger = require('./utils/logger');
 
 const PORT = process.env.PORT || 5000;
@@ -8,13 +9,20 @@ const PORT = process.env.PORT || 5000;
 const startServer = async () => {
   try {
     await connectDB();
-    await connectRedis();
     
+    // Check if redis is ready
+    if (redis.status !== 'ready') {
+      await new Promise((resolve) => redis.once('ready', resolve));
+    }
+    
+    // START EXPRESS LAST
     app.listen(PORT, () => {
-      logger.info(`🚀 Backend Scaled & Ready on port ${PORT}`);
+      console.log(`✅ MongoDB Connected`);
+      console.log(`✅ Redis Pipeline Verified`);
+      console.log(`🚀 Backend Scaled & Ready on port ${PORT}`);
     });
   } catch (error) {
-    logger.error('Failed to start server:', error);
+    console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 };

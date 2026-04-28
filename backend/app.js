@@ -3,6 +3,8 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('./middlewares/rateLimiter');
 const errorMiddleware = require('./middlewares/error.middleware');
+require('dotenv').config(); // MUST BE LINE 1
+
 
 const app = express();
 
@@ -29,8 +31,11 @@ app.use('/api/v1/applications', require('./modules/applications/application.rout
 app.use('/api/v1/payments', require('./modules/payments/payment.routes')); // (Checkout routes)
 
 // 6. 404 HANDLER
-app.all('*', (req, res) => {
-  res.status(404).json({ success: false, message: `Route ${req.originalUrl} not found` });
+app.use((req, res, next) => {
+  res.status(404).json({
+    status: 'fail',
+    message: `Can't find ${req.originalUrl} on this server!`
+  });
 });
 
 // 7. GLOBAL ERROR HANDLER

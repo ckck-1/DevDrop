@@ -37,7 +37,7 @@ await addEmailJob('WELCOME_EMAIL', {
 
     const token = this.generateToken(user._id, user.role);
     return { user, token };
-    const { addEmailJob } = require('../../queues/notification.queue');
+    // const { addEmailJob } = require('../../queues/notification.queue');
 
 
 await addEmailJob('WELCOME_EMAIL', { 

@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const { redis } = require('../config/redis');
+const redis = require('../config/redis');
 const { sendError } = require('../utils/response');
 
 const protect = async (req, res, next) => {

@@ -1,18 +1,23 @@
 const rateLimit = require('express-rate-limit');
 const RedisStore = require('rate-limit-redis').default;
-const { redis } = require('../config/redis');
+const redis = require('../config/redis'); 
 
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per window
-  standardHeaders: true,
-  legacyHeaders: false,
   store: new RedisStore({
+    // Standard setup for ioredis (your config)
     sendCommand: (...args) => redis.call(...args),
   }),
-  message: {
-    success: false,
-    error: 'Too many requests, please try again later.',
+  windowMs: 15 * 60 * 1000, 
+  max: 100, 
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Ensure the handler explicitly calls next if needed, 
+  // though express-rate-limit usually handles this.
+  handler: (req, res, next, options) => {
+    res.status(options.statusCode).json({
+      success: false,
+      message: options.message,
+    });
   },
 });
 
