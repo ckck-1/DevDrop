@@ -17,6 +17,10 @@ class JobRepository {
       .populate('startupId', 'companyName logoUrl');
   }
 
+  async countOpenJobs() {
+    return await Job.countDocuments({ status: 'open' });
+  }
+
   async update(id, startupId, updateData) {
     // Ensure only the owner startup can update
     return await Job.findOneAndUpdate(

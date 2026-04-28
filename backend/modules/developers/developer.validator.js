@@ -1,19 +1,21 @@
-const { body, validationResult } = require('express-validator');
-const { sendError } = require('../../utils/response');
+const { z } = require('zod');
+const { validate, sanitize } = require('../../utils/validate');
 
-const validate = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return sendError(res, errors.array()[0].msg, 400);
-  }
-  next();
-};
+// Zod Schemas for Developer Profile Update
+const updateDeveloperSchema = z.object({
+  fullName: z.string().min(1).optional(),
+  title: z.string().min(1).optional(),
+  skills: z.array(z.string()).optional(),
+  experienceYears: z.number().min(0).max(50).optional(),
+  githubUrl: z.string().url({ message: 'Invalid GitHub URL' }).optional().or(z.literal('')),
+  bio: z.string().max(5000).optional(),
+  location: z.string().optional(),
+  hourlyRate: z.number().min(0).optional(),
+  availability: z.enum(['full-time', 'part-time', 'contract', 'internship', 'not-available']).optional(),
+}).refine(data => Object.keys(data).length > 0, {
+  message: 'At least one field must be provided',
+  path: []
+});
 
-exports.validateUpdate = [
-  body('fullName').optional().trim().notEmpty(),
-  body('title').optional().trim().notEmpty(),
-  body('skills').optional().isArray().withMessage('Skills must be an array'),
-  body('experienceYears').optional().isNumeric(),
-  body('githubUrl').optional().isURL(),
-  validate
-];
+// Middleware: sanitize first, then validate
+exports.validateUpdate = [sanitize, validate({ body: updateDeveloperSchema })];

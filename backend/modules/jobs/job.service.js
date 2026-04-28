@@ -1,6 +1,6 @@
 const jobRepository = require('./job.repository');
 const startupRepository = require('../startups/startup.repository');
-const { redis } = require('../../config/redis');
+const redis = require('../../config/redis');
 const logger = require('../../utils/logger');
 
 class JobService {
@@ -13,9 +13,11 @@ class JobService {
       startupId: startup._id
     });
 
+    logger.info(`Job created: ${job._id} by startup ${startup._id}`);
+
     // Invalidate Job Feed Cache
     await this.clearJobCache();
-    
+
     return job;
   }
 
@@ -29,16 +31,27 @@ class JobService {
     const cachedJobs = await redis.get(cacheKey);
     if (cachedJobs) {
       logger.info('Serving Jobs from Cache');
-      return JSON.parse(cachedJobs);
+      const jobs = JSON.parse(cachedJobs);
+      const total = await jobRepository.countOpenJobs();
+      return {
+        jobs,
+        pagination: { page, limit, total, pages: Math.ceil(total / limit) }
+      };
     }
 
     // 2. Database Fallback
-    const jobs = await jobRepository.findAll({}, { skip, limit });
+    const [jobs, total] = await Promise.all([
+      jobRepository.findAll({}, { skip, limit }),
+      jobRepository.countOpenJobs()
+    ]);
 
     // 3. Set Cache (Expires in 5 minutes)
     await redis.setex(cacheKey, 300, JSON.stringify(jobs));
 
-    return jobs;
+    return {
+      jobs,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) }
+    };
   }
 
   async clearJobCache() {

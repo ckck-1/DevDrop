@@ -1,9 +1,12 @@
 const { Queue } = require('bullmq');
-// FIX: Remove the curly braces around redis
-const redis = require('../config/redis'); 
+const redis = require('../config/redis');
+const logger = require('../utils/logger');
 
 const aiQueue = new Queue('ai-matching', {
-  connection: redis
+  connection: redis,
+  // ADD THESE TO PREVENT THE HANG:
+  sharedConnection: true, 
+  skipCheck: true 
 });
 
 const addMatchJob = async (userId, type) => {
@@ -12,9 +15,9 @@ const addMatchJob = async (userId, type) => {
       attempts: 3,
       backoff: { type: 'exponential', delay: 5000 }
     });
-    console.log(`🚀 AI Match Job added for user: ${userId}`);
+    logger.info(`🚀 AI Match Job added for user: ${userId}`);
   } catch (error) {
-    console.error('❌ Failed to add job to AI Queue:', error.message);
+    logger.error('❌ Failed to add job to AI Queue:', error.message);
   }
 };
 

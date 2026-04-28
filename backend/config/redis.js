@@ -1,33 +1,44 @@
 const Redis = require('ioredis');
-// We call config here again just to be 100% sure the vars are loaded for this module
-require('dotenv').config(); 
+const logger = require('../utils/logger');
 
-const redisUrl = process.env.REDIS_URL;
+let redis = null;
+const MAX_RETRIES = 3; // Stop trying after 3 attempts
 
-if (!redisUrl) {
-    console.error('❌ CRITICAL: REDIS_URL is missing from .env file!');
-    process.exit(1);
+const redisOptions = {
+  maxRetriesPerRequest: null,
+  enableOfflineQueue: true,
+  retryStrategy: (times) => {
+    if (times > MAX_RETRIES) {
+      logger.warn('⚠️ Redis connection attempts exhausted. Giving up.');
+      return null; // Returning null stops ioredis from retrying
+    }
+    return Math.min(times * 200, 3000);
+  },
+};
+
+if (process.env.REDIS_URL) {
+  redis = new Redis(process.env.REDIS_URL, redisOptions);
+  logger.info('🔌 Redis configured for cloud mode');
+} else {
+  redis = new Redis({
+    host: '127.0.0.1',
+    port: 6379,
+    ...redisOptions
+  });
+  logger.info('🔌 Redis configured for local mode');
 }
 
-const redis = new Redis(redisUrl, {
-  maxRetriesPerRequest: null, 
-  // This 'tls' block is what fixes the "SSL alert number 80" error
-  tls: {
-    rejectUnauthorized: false 
-  }
-});
-
-redis.on('connect', () => {
-  console.log('✅ Connected to Upstash Redis (Cape Town)');
-});
+redis.on('ready', () => logger.info('✅ Redis ready'));
 
 redis.on('error', (err) => {
-  // Check if we are still hitting localhost
-  if (err.message.includes('127.0.0.1')) {
-     console.error('❌ Error: Application is still trying to connect to localhost instead of Cloud Redis!');
-  } else {
-     console.error('❌ Redis Connection Error:', err.message);
-  }
+  // We just log the error here. 
+  // The retryStrategy handles the actual fallback logic.
+  logger.error(`❌ Redis error: ${err.message}`);
+});
+
+// If Redis permanently fails to connect, its status becomes 'end'
+redis.on('end', () => {
+  logger.warn('⚠️ Redis disconnected permanently. Running in degraded mode.');
 });
 
 module.exports = redis;

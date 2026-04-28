@@ -9,6 +9,17 @@ class StartupRepository {
     return await Startup.findOne({ userId });
   }
 
+  async findById(id) {
+    return await Startup.findById(id);
+  }
+
+  async update(id, updateData) {
+    return await Startup.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    });
+  }
+
   async deductCredit(startupId) {
     return await Startup.findOneAndUpdate(
       { _id: startupId, contactCredits: { $gt: 0 } },

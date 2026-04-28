@@ -1,6 +1,7 @@
 const stripe = require('stripe');
 const startupRepository = require('../startups/startup.repository');
 const { sendSuccess, sendError } = require('../../utils/response');
+const logger = require('../../utils/logger');
 
 // Safety: Initialize stripe only when needed to ensure env vars are loaded
 const getStripe = () => stripe(process.env.STRIPE_SECRET_KEY);
@@ -12,7 +13,11 @@ const getStripe = () => stripe(process.env.STRIPE_SECRET_KEY);
 exports.createCheckoutSession = async (req, res) => {
   try {
     const stripeInstance = getStripe();
-    const { credits } = req.body; // How many credits they want to buy
+    const { credits } = req.body;
+
+    // Basic validation already done by middleware
+    const quantity = credits || 1;
+    const unitAmount = 1000; // $10 per credit (example)
 
     const session = await stripeInstance.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -21,11 +26,11 @@ exports.createCheckoutSession = async (req, res) => {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: `${credits} Startup Job Credits`,
+              name: `${quantity} Startup Job Credits`,
             },
-            unit_amount: 1000, // $10 per credit (example)
+            unit_amount: unitAmount,
           },
-          quantity: credits || 1,
+          quantity,
         },
       ],
       mode: 'payment',
@@ -34,13 +39,15 @@ exports.createCheckoutSession = async (req, res) => {
       customer_email: req.user.email,
       metadata: {
         userId: req.user.id,
-        credits: credits || 1
+        credits: quantity
       },
     });
 
-    sendSuccess(res, { url: session.url }, 'Session created');
+    logger.info(`Checkout session created: ${session.id} for user ${req.user.id}, credits: ${quantity}`);
+    return sendSuccess(res, { url: session.url }, 'Session created');
   } catch (error) {
-    sendError(res, error.message, 500);
+    logger.error(`Checkout error: ${error.message} for user ${req.user.id}`);
+    return sendError(res, error.message, 500);
   }
 };
 
@@ -55,21 +62,27 @@ exports.handleWebhook = async (req, res) => {
 
   try {
     event = stripeInstance.webhooks.constructEvent(
-      req.body, // Must be raw body (Handled in app.js)
-      sig, 
+      req.body,
+      sig,
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
+    logger.warn(`Webhook signature verification failed: ${err.message}`);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
     const { userId, credits } = session.metadata;
-    
+
+    logger.info(`Payment successful: session ${session.id}, userId: ${userId}, credits: ${credits}`);
+
     const startup = await startupRepository.findByUserId(userId);
     if (startup) {
       await startupRepository.addCredits(startup._id, parseInt(credits));
+      logger.info(`Credits added: startup ${startup._id} +${credits} credits`);
+    } else {
+      logger.warn(`Startup not found for userId ${userId} during webhook processing`);
     }
   }
 

@@ -1,24 +1,29 @@
-const { body, validationResult } = require('express-validator');
-const { sendError } = require('../../utils/response');
+const { z } = require('zod');
+const { validate, sanitize } = require('../../utils/validate');
 
-const validate = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return sendError(res, errors.array()[0].msg, 400);
-  }
-  next();
-};
+// Zod Schemas
+const registerSchema = z.object({
+  email: z.string().email({ message: 'Enter a valid email' }).toLowerCase().trim(),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+  role: z.enum(['developer', 'startup'], { message: 'Role must be developer or startup' }),
+  name: z.string().min(1, { message: 'Name is required' }).trim(),
+});
 
-exports.validateRegister = [
-  body('email').isEmail().withMessage('Enter a valid email'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be 6+ chars'),
-  body('role').notEmpty(),
-  body('name').notEmpty().withMessage('Name is required'),
-  validate
-];
+const loginSchema = z.object({
+  email: z.string().email({ message: 'Enter a valid email' }).toLowerCase().trim(),
+  password: z.string().min(1, { message: 'Password is required' }),
+});
 
-exports.validateLogin = [
-  body('email').isEmail().withMessage('Enter a valid email'),
-  body('password').notEmpty().withMessage('Password is required'),
-  validate
-];
+const refreshTokenSchema = z.object({
+  refreshToken: z.string().min(1, { message: 'Refresh token is required' }),
+});
+
+const verifyEmailSchema = z.object({
+  token: z.string().min(1, { message: 'Token is required' }),
+});
+
+// Middleware: sanitize inputs first, then validate
+exports.validateRegister = [sanitize, validate({ body: registerSchema })];
+exports.validateLogin = [sanitize, validate({ body: loginSchema })];
+exports.validateRefresh = [sanitize, validate({ body: refreshTokenSchema })];
+exports.validateVerifyEmail = [sanitize, validate({ query: verifyEmailSchema })];

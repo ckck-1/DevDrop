@@ -2,7 +2,9 @@ const { Queue } = require('bullmq');
 const redis = require('../config/redis');
 
 const notificationQueue = new Queue('notifications', {
-  connection: redis
+  connection: redis,
+  sharedConnection: true, 
+  skipCheck: true 
 });
 
 /**

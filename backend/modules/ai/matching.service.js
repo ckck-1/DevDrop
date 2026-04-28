@@ -1,6 +1,7 @@
 const axios = require('axios');
 const developerRepository = require('../developers/developer.repository');
 const jobRepository = require('../jobs/job.repository');
+const redis = require('../../config/redis');
 const logger = require('../../utils/logger');
 
 class MatchingService {
@@ -10,6 +11,7 @@ class MatchingService {
   }
 
   async matchDevToJobs(developerId) {
+    logger.info(`Starting AI matching for developer ${developerId}`);
     const dev = await developerRepository.findByUserId(developerId);
     const jobs = await jobRepository.findAll({ status: 'open' }, { limit: 10 });
 
@@ -31,12 +33,14 @@ class MatchingService {
         headers: { 'Authorization': `Bearer ${this.apiKey}` }
       });
 
-      const results = JSON.parse(response.data.choices[0].message.content);
-      
-      // Store results in Redis for quick retrieval by the UI
+      const content = response.data.choices[0].message.content;
+      const results = JSON.parse(content);
+
+      // Store results in Redis
       const cacheKey = `matches:dev:${developerId}`;
-      await require('../../config/redis').redis.setex(cacheKey, 3600, JSON.stringify(results));
-      
+      await redis.setex(cacheKey, 3600, JSON.stringify(results));
+
+      logger.info(`AI matching completed for developer ${developerId}, ${results.length} matches`);
       return results;
     } catch (error) {
       logger.error('Mistral Matching Error:', error.message);
