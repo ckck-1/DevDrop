@@ -25,7 +25,7 @@ router.get('/me', userController.getMe);
 
 /**
  * @swagger
- * /users/update-settings:
+ * /api/v1/users/update-settings:
  *   patch:
  *     summary: Update user settings
  *     tags: [Users]
