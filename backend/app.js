@@ -21,12 +21,22 @@ app.use(helmet({
   },
 }));
 
-// Configure CORS with allowed origin
-const corsOptions = {
-  origin: process.env.CLIENT_URL || 'https://devdrop-ds91.onrender.com/',
-  credentials: true,
-  optionsSuccessStatus: 200
-};
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "https://your-frontend.vercel.app"
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
+}));
 app.use(cors(corsOptions));
 
 // 2. HTTP Request Logging (except production if not needed)
