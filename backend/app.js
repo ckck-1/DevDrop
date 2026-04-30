@@ -5,11 +5,10 @@ const rateLimit = require('./middlewares/rateLimiter');
 const errorMiddleware = require('./middlewares/error.middleware');
 const compression = require('compression');
 const swaggerDocs = require('./config/swagger');
-// MUST BE LINE 1
 
 const app = express();
 
-// 1. GLOBAL SECURITY & CORS
+// 1. SECURITY (Helmet)
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -21,6 +20,7 @@ app.use(helmet({
   },
 }));
 
+// 2. CORS (FIXED + CLEAN)
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
@@ -29,65 +29,70 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
+    // allow tools like Postman or server-to-server
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
     }
+
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true
 }));
-app.use(cors(corsOptions));
 
-// 2. HTTP Request Logging (except production if not needed)
+// 3. LOGGING (dev only)
 if (process.env.NODE_ENV !== 'production') {
   const morgan = require('morgan');
   app.use(morgan('dev'));
 }
 
-// 3. Response Compression
+// 4. COMPRESSION
 app.use(compression());
 
-// Trust proxy for rate limiting and IP logging (if behind load balancer)
+// 5. TRUST PROXY (Render / load balancers)
 if (process.env.TRUST_PROXY === 'true') {
   app.set('trust proxy', 1);
 }
 
-// 2. SPECIAL STRIPE WEBHOOK ROUTE (Must be before express.json)
-// We define it here directly or point to the module with raw enabled
-app.use('/api/v1/payments/webhook', express.raw({ type: 'application/json' }), require('./modules/payments/payment.controller').handleWebhook);
+// 6. STRIPE WEBHOOK (must be BEFORE json parser)
+app.use(
+  '/api/v1/payments/webhook',
+  express.raw({ type: 'application/json' }),
+  require('./modules/payments/payment.controller').handleWebhook
+);
 
-// 3. GLOBAL PARSERS (For all other routes)
+// 7. BODY PARSER
 app.use(express.json({ limit: '10kb' }));
 
-// Global input sanitization (XSS, NoSQL injection protection)
+// 8. SANITIZATION
 const { sanitize } = require('./utils/validate');
 app.use(sanitize);
 
-// 4. RATE LIMITING
+// 9. RATE LIMITING
 app.use('/api/', rateLimit);
 
-// 5. MODULE ROUTES
+// 10. ROUTES
 app.use('/api/v1/auth', require('./modules/auth/auth.routes'));
 app.use('/api/v1/users', require('./modules/users/user.routes'));
 app.use('/api/v1/developers', require('./modules/developers/developer.routes'));
 app.use('/api/v1/startups', require('./modules/startups/startup.routes'));
 app.use('/api/v1/jobs', require('./modules/jobs/job.routes'));
 app.use('/api/v1/applications', require('./modules/applications/application.routes'));
-app.use('/api/v1/payments', require('./modules/payments/payment.routes')); // (Checkout routes)
+app.use('/api/v1/payments', require('./modules/payments/payment.routes'));
 
-// 6. SWAGGER DOCS
+// 11. SWAGGER DOCS
 swaggerDocs(app);
 
-// 7. 404 HANDLER
-app.use((req, res, next) => {
+// 12. 404 HANDLER
+app.use((req, res) => {
   res.status(404).json({
     status: 'fail',
     message: `Can't find ${req.originalUrl} on this server!`
   });
 });
 
-// 8. GLOBAL ERROR HANDLER
+// 13. GLOBAL ERROR HANDLER
 app.use(errorMiddleware);
 
 module.exports = app;
