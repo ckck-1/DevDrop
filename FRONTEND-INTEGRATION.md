@@ -99,8 +99,7 @@ CLIENT_URL=http://localhost:5173
 ```
 
 ### Frontend `.env`
-```env
-VITE_API_URL=http://localhost:5000
+```env  :https://devdrop-ds91.onrender.com/
 ```
 
 Restart frontend after changing `.env`.
@@ -283,24 +282,24 @@ npm run test           # Run tests
 
 ```bash
 # 1. Register
-curl -X POST http://localhost:5000/api/v1/auth/register \
+curl -X POST https://devdrop-ds91.onrender.com/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"dev@test.com","password":"Test123!","role":"developer","name":"Dev"}'
 
 # 2. Login
-curl -X POST http://localhost:5000/api/v1/auth/login \
+curl -X POST http://devdrop-ds91.onrender.com/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"dev@test.com","password":"Test123!"}'
 
 # 3. Get profile (replace TOKEN)
-curl http://localhost:5000/api/v1/developers/me \
+curl http://devdrop-ds91.onrender.com/api/v1/developers/me \
   -H "Authorization: Bearer TOKEN"
 
 # 4. Get job feed
-curl http://localhost:5000/api/v1/jobs/feed
+curl http://devdrop-ds91.onrender.com/api/v1/jobs/feed
 
 # 5. Create job (startup)
-curl -X POST http://localhost:5000/api/v1/jobs/ \
+curl -X POST http://devdrop-ds91.onrender.com/api/v1/jobs/ \
   -H "Authorization: Bearer STARTUP_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"title":"Senior Developer","description":"Hiring!","techStack":["React","Node.js"]}'
@@ -310,7 +309,7 @@ curl -X POST http://localhost:5000/api/v1/jobs/ \
 
 ## API Documentation
 
-Interactive Swagger UI: **http://localhost:5000/api-docs**
+Interactive Swagger UI: **http://devdrop-ds91.onrender.com/api-docs**
 
 All endpoints documented with request/response schemas and auth requirements.
 
@@ -319,7 +318,7 @@ All endpoints documented with request/response schemas and auth requirements.
 ## Need Help?
 
 - Backend logs: `backend/logs/combined.log`
-- Check server is running: `curl http://localhost:5000/api-docs`
+- Check server is running: `curl http://devdrop-ds91.onrender.com/api-docs`
 - MongoDB: Verify connection in Atlas dashboard
 - Redis: Check Upstash dashboard or `redis-cli ping`
 
