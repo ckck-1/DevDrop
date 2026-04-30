@@ -1,3 +1,4 @@
+// modules/messages/message.repository.js
 const Message = require("./message.model");
 
 class MessageRepository {
@@ -5,16 +6,8 @@ class MessageRepository {
     return Message.create(data);
   }
 
-  async getByThread(threadId, limit = 50, cursor) {
-    const query = { threadId };
-
-    if (cursor) {
-      query._id = { $lt: cursor };
-    }
-
-    return Message.find(query)
-      .sort({ createdAt: -1 })
-      .limit(limit);
+  async findByThread(threadId) {
+    return Message.find({ threadId }).sort({ createdAt: 1 });
   }
 }
 

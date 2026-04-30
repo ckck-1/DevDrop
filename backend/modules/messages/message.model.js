@@ -1,3 +1,4 @@
+// modules/messages/message.model.js
 const mongoose = require("mongoose");
 
 const messageSchema = new mongoose.Schema(
@@ -7,28 +8,25 @@ const messageSchema = new mongoose.Schema(
       ref: "Thread",
       required: true,
     },
-
     senderId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
-
     senderRole: {
       type: String,
-      enum: ["dev", "startup"],
+      enum: ["developer", "startup"],
       required: true,
     },
-
     text: {
       type: String,
       required: true,
     },
-
-    readBy: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-      },
-    ],
+    type: {
+      type: String,
+      enum: ["text", "application"],
+      default: "text",
+    },
   },
   { timestamps: true }
 );

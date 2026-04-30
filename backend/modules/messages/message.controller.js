@@ -1,32 +1,29 @@
+// modules/messages/message.controller.js
 const messageService = require("./message.service");
 const { sendSuccess, sendError } = require("../../utils/response");
 
-exports.getMessages = async (req, res) => {
+exports.applyToJob = async (req, res) => {
   try {
-    const messages = await messageService.getMessages(
-      req.params.threadId,
-      req.query.cursor
+    const thread = await messageService.applyToJob(
+      req.params.jobId,
+      req.user.id,
+      req.user.role
     );
 
-    sendSuccess(res, messages);
-  } catch (err) {
-    sendError(res, err.message);
+    sendSuccess(res, { conversationId: thread._id }, "Application sent");
+  } catch (error) {
+    sendError(res, error.message, 400);
   }
 };
 
-exports.sendMessage = async (req, res) => {
+exports.getMessages = async (req, res) => {
   try {
-    const { text } = req.body;
-
-    const message = await messageService.sendMessage(
-      req.params.threadId,
-      req.user.id,
-      req.user.role,
-      text
+    const messages = await messageService.getThreadMessages(
+      req.params.threadId
     );
 
-    sendSuccess(res, message, "Message sent");
-  } catch (err) {
-    sendError(res, err.message);
+    sendSuccess(res, messages);
+  } catch (error) {
+    sendError(res, error.message, 500);
   }
 };

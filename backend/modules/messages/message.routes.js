@@ -1,26 +1,14 @@
+// modules/messages/message.routes.js
 const express = require("express");
 const router = express.Router();
 
-const threadController = require("./thread.controller");
 const messageController = require("./message.controller");
-
 const { protect } = require("../../middlewares/auth.middleware");
 
-/* THREADS */
-router.get("/threads", protect, threadController.getThreads);
+// APPLY TO JOB (MAIN FEATURE)
+router.post("/apply/:jobId", protect, messageController.applyToJob);
 
-router.post("/threads/find-or-create", protect, threadController.findOrCreate);
-router.post(
-  "/threads/from-job",
-  protect,
-  threadController.createFromJob
-);
-
-router.get("/threads/:id", protect, threadController.getThread);
-
-/* MESSAGES */
-router.get("/threads/:threadId/messages", protect, messageController.getMessages);
-
-router.post("/threads/:threadId/messages", protect, messageController.sendMessage);
+// GET MESSAGES IN THREAD
+router.get("/thread/:threadId", protect, messageController.getMessages);
 
 module.exports = router;

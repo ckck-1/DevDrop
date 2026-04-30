@@ -9,7 +9,7 @@ const { validateCreate, validateUpdate } = require('./job.validator');
  * @swagger
  * /api/v1/jobs/feed:
  *   get:
- *     summary: Get job feed (paginated)
+ *     summary: Get job feed m(paginated)
  *     tags: [Jobs]
  *     parameters:
  *       - in: query

@@ -1,37 +1,27 @@
+// modules/messages/thread.repository.js
 const Thread = require("./thread.model");
 
 class ThreadRepository {
-  async findUserThreads(userId) {
-    return Thread.find({
-      "participants.userId": userId,
-    }).sort({ lastAt: -1 });
+  async findOrCreate(jobId, startupId, developerId) {
+    let thread = await Thread.findOne({
+      jobId,
+      startupId,
+      developerId,
+    });
+
+    if (!thread) {
+      thread = await Thread.create({
+        jobId,
+        startupId,
+        developerId,
+      });
+    }
+
+    return thread;
   }
 
   async findById(id) {
     return Thread.findById(id);
-  }
-
-  async findOrCreate(participants) {
-    const thread = await Thread.findOne({
-      participants: {
-        $all: participants.map((p) => ({
-          $elemMatch: { userId: p.userId },
-        })),
-      },
-    });
-
-    if (thread) return thread;
-
-    return Thread.create({
-      participants,
-    });
-  }
-
-  async updateLastMessage(threadId, text) {
-    return Thread.findByIdAndUpdate(threadId, {
-      lastMessage: text,
-      lastAt: new Date(),
-    });
   }
 }
 
