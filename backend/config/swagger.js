@@ -15,7 +15,7 @@ const options = {
     },
     servers: [
       {
-        url: `https://devdrop-ds91.onrender.com`,
+        url: 'https://devdrop-ds91.onrender.com',
         description: 'Development server',
       },
       {
@@ -23,37 +23,34 @@ const options = {
         description: 'Production server',
       },
     ],
+
     components: {
       securitySchemes: {
         bearerAuth: {
-          type: 'https',
+          type: 'http', // ✅ FIXED
           scheme: 'bearer',
           bearerFormat: 'JWT',
         },
       },
     },
+
+    // Optional: apply globally (can still override per route)
     security: [
       {
         bearerAuth: [],
       },
     ],
   },
+
   // Paths to files containing OpenAPI annotations
   apis: [
-    './modules/auth/auth.routes.js',
-    './modules/auth/auth.controller.js',
-    './modules/users/user.routes.js',
-    './modules/users/user.controller.js',
-    './modules/developers/developer.routes.js',
-    './modules/developers/developer.controller.js',
-    './modules/startups/startup.routes.js',
-    './modules/startups/startup.controller.js',
-    './modules/jobs/job.routes.js',
-    './modules/jobs/job.controller.js',
-    './modules/applications/application.routes.js',
-    './modules/applications/application.controller.js',
-    './modules/payments/payment.routes.js',
-    './modules/payments/payment.controller.js',
+    './modules/auth/*.js',
+    './modules/users/*.js',
+    './modules/developers/*.js',
+    './modules/startups/*.js',
+    './modules/jobs/*.js',
+    './modules/applications/*.js',
+    './modules/payments/*.js',
   ],
 };
 
@@ -65,10 +62,18 @@ const specs = swaggerJsdoc(options);
  */
 
 module.exports = (app) => {
-  // Serve Swagger docs at /api-docs
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+  // Swagger UI options (helps with auth persistence)
+  const swaggerUiOptions = {
+    explorer: true,
+    swaggerOptions: {
+      persistAuthorization: true, // ✅ keeps token after refresh
+    },
+  };
 
-  // Also serve JSON at /api-docs.json
+  // Serve Swagger docs
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, swaggerUiOptions));
+
+  // JSON endpoint
   app.get('/api-docs.json', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(specs);
