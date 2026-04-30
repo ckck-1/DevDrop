@@ -15,6 +15,22 @@ exports.applyToJob = async (req, res) => {
     sendError(res, error.message, 400);
   }
 };
+const Thread = require("./thread.model");
+
+exports.getThreads = async (req, res) => {
+  try {
+    const threads = await Thread.find({
+      developerId: req.user.id,
+    }).sort({ updatedAt: -1 });
+
+    res.json({
+      success: true,
+      data: threads,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 exports.getMessages = async (req, res) => {
   try {
