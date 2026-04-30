@@ -10,18 +10,18 @@ class ThreadService {
     if (!thread) {
       thread = await Thread.create({
         jobId,
-       participants: [
-  {
-    userId,
-    name,
-    avatar,
-    role: "candidate"
-  },
-  {
-    userId,
-    role: "recruiter"
-  }
-]
+        participants: [
+          {
+            userId,
+            name: userMeta?.name || "Unknown",
+            avatar: userMeta?.avatar || "",
+            role: "candidate",
+          },
+          {
+            userId: recruiterId,
+            role: "recruiter",
+          },
+        ],
       });
     }
 
