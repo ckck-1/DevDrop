@@ -5,6 +5,7 @@ const rateLimit = require('./middlewares/rateLimiter');
 const errorMiddleware = require('./middlewares/error.middleware');
 const compression = require('compression');
 const swaggerDocs = require('./config/swagger');
+const messagingRoutes = require('./modules/messaging/messaging.routes');
 
 const app = express();
 
@@ -83,6 +84,7 @@ app.use('/api/v1/startups', require('./modules/startups/startup.routes'));
 app.use('/api/v1/jobs', require('./modules/jobs/job.routes'));
 app.use('/api/v1/applications', require('./modules/applications/application.routes'));
 app.use('/api/v1/payments', require('./modules/payments/payment.routes'));
+app.use('/api/v1/messages', messagingRoutes);
 
 // 11. SWAGGER DOCS
 swaggerDocs(app);
