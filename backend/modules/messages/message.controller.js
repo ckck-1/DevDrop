@@ -6,22 +6,29 @@ exports.applyToJob = async (req, res) => {
   try {
     const { jobId } = req.params;
 
-    if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    console.log("👉 APPLY JOB:", jobId);
+    console.log("👉 USER:", req.user);
 
     const job = await Job.findById(jobId);
-    if (!job) return res.status(404).json({ message: "Job not found" });
+
+    if (!job) {
+      console.log("❌ Job not found");
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    console.log("👉 JOB FOUND:", job.title);
 
     const thread = await threadService.findOrCreateThread({
       jobId,
       userId: req.user._id,
-      recruiterId:  job.startupId, // 🔥 fallback safety
+      recruiterId: job.startupId, // FIXED
       userMeta: {
         name: req.user.name || "Unknown",
-        avatar: req.user.avatar || "", // 🔥 prevent crash
+        avatar: req.user.avatar || "",
       },
     });
+
+    console.log("👉 THREAD:", thread._id);
 
     const message = await messageService.sendMessage(
       thread._id,
@@ -30,16 +37,15 @@ exports.applyToJob = async (req, res) => {
       `Hi! I just applied for ${job.title}`
     );
 
-    return res.json({ thread, message });
+    console.log("👉 MESSAGE CREATED");
+
+    res.json({ thread, message });
+
   } catch (err) {
-    console.error("🔥 applyToJob error:", err);
-    return res.status(500).json({
-      message: "Apply failed",
-      error: err.message, // 🔥 super important for debugging
-    });
+    console.error("🔥 APPLY ERROR:", err); // IMPORTANT
+    res.status(500).json({ message: "Apply failed", error: err.message });
   }
 };
-
 exports.getMessages = async (req, res) => {
   try {
     const messages = await messageService.getMessages(req.params.threadId);
