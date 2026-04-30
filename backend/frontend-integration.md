@@ -2,7 +2,7 @@
 
 ## Base URL
 ```
-Development: http://localhost:5000
+Development: http://devdrop-ds91.onrender.com
 Production: https://yourdomain.com
 ```
 
@@ -401,24 +401,24 @@ DAILY_APPLICATION_LIMIT=10
 
 ```bash
 # Register
-curl -X POST http://localhost:5000/api/v1/auth/register \
+curl -X POST http://devdrop-ds91.onrender.com/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{"email":"test@test.com","password":"Test123!","role":"developer","name":"Test"}'
 
 # Login
-curl -X POST http://localhost:5000/api/v1/auth/login \
+curl -X POST http://devdrop-ds91.onrender.comapi/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@test.com","password":"Test123!"}'
 
 # Get profile (replace TOKEN)
-curl http://localhost:5000/api/v1/developers/me \
+curl http://devdrop-ds91.onrender.com/api/v1/developers/me \
   -H "Authorization: Bearer TOKEN"
 
 # Get job feed
-curl http://localhost:5000/api/v1/jobs/feed
+curl http://devdrop-ds91.onrender.com/api/v1/jobs/feed
 
 # Create job (startup token required)
-curl -X POST http://localhost:5000/api/v1/jobs/ \
+curl -X POST http://devdrop-ds91.onrender.com/api/v1/jobs/ \
   -H "Authorization: Bearer STARTUP_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"title":"Dev Job","description":"Hiring","techStack":["Node.js"]}'
@@ -445,10 +445,10 @@ curl -X POST http://localhost:5000/api/v1/jobs/ \
 3. **Start notification worker**: `npm run worker:notification`
 4. **Update frontend `.env`**:
    ```
-   VITE_API_URL=http://localhost:5000
+   VITE_API_URL=http://devdrop-ds91.onrender.com
    ```
 5. **Implement API service layer** in frontend (e.g., `src/services/api.js`)
-6. **Test endpoints** via Swagger UI first: `http://localhost:5000/api-docs`
+6. **Test endpoints** via Swagger UI first: `http://devdrop-ds91.onrender.com/api-docs`
 
 ---
 
@@ -458,4 +458,4 @@ Check logs:
 - `logs/combined.log` - all logs
 - `logs/error.log` - errors only
 
-Swagger documentation: `http://localhost:5000/api-docs`
+Swagger documentation: `http://devdrop-ds91.onrender.com/api-docs`

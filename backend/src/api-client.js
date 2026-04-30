@@ -7,7 +7,7 @@
  *   api.auth.login(email, password)
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://devdrop-ds91.onrender.com';
 
 // Helper to build URL
 const buildUrl = (path) => `${API_BASE_URL}${path}`;
