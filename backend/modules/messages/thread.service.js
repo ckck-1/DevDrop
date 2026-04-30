@@ -1,16 +1,20 @@
 const threadRepo = require("./thread.repository");
 
 class ThreadService {
-  async getUserThreads(userId) {
-    return threadRepo.findUserThreads(userId);
-  }
-
   async findOrCreateThread(participants) {
+    if (!participants || participants.length === 0) {
+      throw new Error("Participants required");
+    }
+
     return threadRepo.findOrCreate(participants);
   }
 
-  async getThreadById(id) {
-    return threadRepo.findById(id);
+  async getThreads(userId) {
+    return threadRepo.getThreadsByUser(userId);
+  }
+
+  async getThread(threadId) {
+    return threadRepo.getById(threadId);
   }
 }
 
