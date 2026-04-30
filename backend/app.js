@@ -24,7 +24,8 @@ app.use(helmet({
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
-  "https://your-frontend.vercel.app"
+  // "https://your-frontend.vercel.app",
+  "https://devdrop-ds91.onrender.com" // Add this!
 ];
 
 app.use(cors({
