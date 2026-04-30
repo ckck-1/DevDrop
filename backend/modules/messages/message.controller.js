@@ -19,16 +19,36 @@ const Thread = require("./thread.model");
 
 exports.getThreads = async (req, res) => {
   try {
+    const Thread = require("./thread.model");
+    const Job = require("../jobs/job.model");
+    const Startup = require("../startups/startup.model");
+
     const threads = await Thread.find({
       developerId: req.user.id,
     }).sort({ updatedAt: -1 });
 
+    const formatted = await Promise.all(
+      threads.map(async (t) => {
+        const job = await Job.findById(t.jobId);
+        const startup = await Startup.findById(t.startupId);
+
+        return {
+          _id: t._id,
+          withName: startup?.companyName || "Startup",
+          avatar: startup?.companyName?.charAt(0) || "S",
+          lastMessage: t.lastMessage || "No messages yet",
+          lastAt: new Date(t.updatedAt).toLocaleDateString(),
+          unread: 0,
+        };
+      })
+    );
+
     res.json({
       success: true,
-      data: threads,
+      data: formatted,
     });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
