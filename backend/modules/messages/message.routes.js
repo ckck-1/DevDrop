@@ -10,6 +10,11 @@ const { protect } = require("../../middlewares/auth.middleware");
 router.get("/threads", protect, threadController.getThreads);
 
 router.post("/threads/find-or-create", protect, threadController.findOrCreate);
+router.post(
+  "/threads/from-job",
+  protect,
+  threadController.createFromJob
+);
 
 router.get("/threads/:id", protect, threadController.getThread);
 

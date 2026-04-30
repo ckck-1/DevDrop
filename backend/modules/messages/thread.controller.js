@@ -1,31 +1,21 @@
-const threadService = require("./thread.service");
-const { sendSuccess, sendError } = require("../../utils/response");
-
-exports.getThreads = async (req, res) => {
+exports.createFromJob = async (req, res) => {
   try {
-    const threads = await threadService.getUserThreads(req.user.id);
-    sendSuccess(res, threads);
-  } catch (err) {
-    sendError(res, err.message);
-  }
-};
+    const { jobId } = req.body;
 
-exports.findOrCreate = async (req, res) => {
-  try {
-    const { participants } = req.body;
+    const job = await require("../jobs/job.repository").findById(jobId);
 
-    const thread = await threadService.findOrCreateThread(participants);
-    sendSuccess(res, thread);
-  } catch (err) {
-    sendError(res, err.message);
-  }
-};
+    const startupUserId = job.startupId; // adjust if populated
 
-exports.getThread = async (req, res) => {
-  try {
-    const thread = await threadService.getThreadById(req.params.id);
-    sendSuccess(res, thread);
+    const thread = await require("./thread.service").findOrCreateThread([
+      { userId: req.user.id, role: req.user.role },
+      { userId: startupUserId, role: "startup" },
+    ]);
+
+    res.json({
+      success: true,
+      data: thread,
+    });
   } catch (err) {
-    sendError(res, err.message);
+    res.status(500).json({ message: err.message });
   }
 };
