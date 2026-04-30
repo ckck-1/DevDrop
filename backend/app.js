@@ -10,6 +10,9 @@ const messageRoutes = require("./modules/messages/message.routes");
 
 const app = express();
 
+// 0. PROXY CONFIGURATION (Critical for Render/Rate Limiting)
+app.set('trust proxy', 1);
+
 // 1. SECURITY (Helmet)
 app.use(helmet({
   contentSecurityPolicy: {
@@ -22,31 +25,26 @@ app.use(helmet({
   },
 }));
 
-// 2. CORS (FIXED + CLEAN)
+// 2. CORS
 const allowedOrigins = [
   "http://localhost:3000",
   "http://localhost:5173",
   "http://localhost:8080",
-
-  // "https://your-frontend.vercel.app",
-  "https://devdrop-ds91.onrender.com" // Add this!
+  "https://devdrop-ds91.onrender.com" 
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // allow tools like Postman or server-to-server
     if (!origin) return callback(null, true);
-
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-
     return callback(new Error("Not allowed by CORS"));
   },
   credentials: true
 }));
 
-// 3. LOGGING (dev only)
+// 3. LOGGING
 if (process.env.NODE_ENV !== 'production') {
   const morgan = require('morgan');
   app.use(morgan('dev'));
@@ -55,30 +53,24 @@ if (process.env.NODE_ENV !== 'production') {
 // 4. COMPRESSION
 app.use(compression());
 
-// 5. TRUST PROXY (Render / load balancers)
-if (process.env.TRUST_PROXY === 'true') {
-  app.set('trust proxy', 1);
-}
-
-// 6. STRIPE WEBHOOK (must be BEFORE json parser)
+// 5. STRIPE WEBHOOK (must be BEFORE json parser)
 app.use(
   '/api/v1/payments/webhook',
   express.raw({ type: 'application/json' }),
   require('./modules/payments/payment.controller').handleWebhook
 );
 
-// 7. BODY PARSER
+// 6. BODY PARSER
 app.use(express.json({ limit: '10kb' }));
 
-// 8. SANITIZATION
+// 7. SANITIZATION
 const { sanitize } = require('./utils/validate');
 app.use(sanitize);
 
-// 9. RATE LIMITING
-app.set('trust proxy', 1);
+// 8. RATE LIMITING (Applied to all API routes)
 app.use('/api/', rateLimit);
 
-// 10. ROUTES
+// 9. ROUTES
 app.use('/api/v1/auth', require('./modules/auth/auth.routes'));
 app.use('/api/v1/users', require('./modules/users/user.routes'));
 app.use('/api/v1/developers', require('./modules/developers/developer.routes'));
@@ -88,11 +80,10 @@ app.use('/api/v1/jobs', require('./modules/jobs/job.routes'));
 app.use('/api/v1/applications', require('./modules/applications/application.routes'));
 app.use('/api/v1/payments', require('./modules/payments/payment.routes'));
 
-
-// 11. SWAGGER DOCS
+// 10. SWAGGER DOCS
 swaggerDocs(app);
 
-// 12. 404 HANDLER
+// 11. 404 HANDLER
 app.use((req, res) => {
   res.status(404).json({
     status: 'fail',
@@ -100,7 +91,7 @@ app.use((req, res) => {
   });
 });
 
-// 13. GLOBAL ERROR HANDLER
+// 12. GLOBAL ERROR HANDLER
 app.use(errorMiddleware);
 
 module.exports = app;

@@ -5,9 +5,12 @@ const Job = require("../jobs/job.model");
 exports.applyToJob = async (req, res) => {
   try {
     const { jobId } = req.params;
+    
+    // Safely extract User ID (handling different middleware formats)
+    const currentUserId = req.user.id || req.user._id;
 
     console.log("👉 APPLY JOB:", jobId);
-    console.log("👉 USER:", req.user);
+    console.log("👉 USER ID:", currentUserId);
 
     const job = await Job.findById(jobId);
 
@@ -18,22 +21,21 @@ exports.applyToJob = async (req, res) => {
 
     console.log("👉 JOB FOUND:", job.title);
 
-   // Change this line in message.controller.js
-const thread = await threadService.findOrCreateThread({
-  jobId,
-  userId: req.user.id || req.user._id, // Use .id based on your console log
-  recruiterId: job.startupId,
-  userMeta: {
-    name: req.user.name || "Unknown",
-    avatar: req.user.avatar || "",
-  },
-});
+    const thread = await threadService.findOrCreateThread({
+      jobId,
+      userId: currentUserId,
+      recruiterId: job.startupId,
+      userMeta: {
+        name: req.user.name || "Unknown",
+        avatar: req.user.avatar || "",
+      },
+    });
 
-    console.log("👉 THREAD:", thread._id);
+    console.log("👉 THREAD ID:", thread._id);
 
     const message = await messageService.sendMessage(
       thread._id,
-      req.user._id,
+      currentUserId,
       "candidate",
       `Hi! I just applied for ${job.title}`
     );
@@ -43,14 +45,16 @@ const thread = await threadService.findOrCreateThread({
     res.json({ thread, message });
 
   } catch (err) {
-    console.error("🔥 APPLY ERROR:", err); // IMPORTANT
+    console.error("🔥 APPLY ERROR:", err);
     res.status(500).json({ message: "Apply failed", error: err.message });
   }
 };
+
 exports.getMessages = async (req, res) => {
   try {
+    const currentUserId = req.user.id || req.user._id;
     const messages = await messageService.getMessages(req.params.threadId);
-    const threads = await threadService.getThreadsForUser(req.user._id);
+    const threads = await threadService.getThreadsForUser(currentUserId);
 
     const thread = threads.find((t) => t._id.toString() === req.params.threadId);
 
@@ -62,7 +66,8 @@ exports.getMessages = async (req, res) => {
 
 exports.getThreads = async (req, res) => {
   try {
-    const threads = await threadService.getThreadsForUser(req.user._id);
+    const currentUserId = req.user.id || req.user._id;
+    const threads = await threadService.getThreadsForUser(currentUserId);
     res.json(threads);
   } catch (err) {
     res.status(500).json({ message: "Failed to load threads" });
