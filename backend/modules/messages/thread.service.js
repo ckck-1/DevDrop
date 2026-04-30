@@ -3,9 +3,9 @@ const Thread = require("./thread.model");
 class ThreadService {
   async findOrCreateThread({ jobId, userId, recruiterId, userMeta }) {
     let thread = await Thread.findOne({
-      jobId,
-      "participants.userId": { $all: [userId, recruiterId] },
-    });
+  jobId,
+  "participants.userId": { $all: [userId, recruiterId] },
+});
 
     if (!thread) {
       thread = await Thread.create({

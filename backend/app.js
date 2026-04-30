@@ -75,6 +75,7 @@ const { sanitize } = require('./utils/validate');
 app.use(sanitize);
 
 // 9. RATE LIMITING
+app.set('trust proxy', 1);
 app.use('/api/', rateLimit);
 
 // 10. ROUTES

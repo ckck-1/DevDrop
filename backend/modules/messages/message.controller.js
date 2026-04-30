@@ -18,15 +18,16 @@ exports.applyToJob = async (req, res) => {
 
     console.log("👉 JOB FOUND:", job.title);
 
-    const thread = await threadService.findOrCreateThread({
-      jobId,
-      userId: req.user._id,
-      recruiterId: job.startupId, // FIXED
-      userMeta: {
-        name: req.user.name || "Unknown",
-        avatar: req.user.avatar || "",
-      },
-    });
+   // Change this line in message.controller.js
+const thread = await threadService.findOrCreateThread({
+  jobId,
+  userId: req.user.id || req.user._id, // Use .id based on your console log
+  recruiterId: job.startupId,
+  userMeta: {
+    name: req.user.name || "Unknown",
+    avatar: req.user.avatar || "",
+  },
+});
 
     console.log("👉 THREAD:", thread._id);
 
