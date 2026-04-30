@@ -1,65 +1,56 @@
-// modules/messages/message.controller.js
 const messageService = require("./message.service");
-const { sendSuccess, sendError } = require("../../utils/response");
+const threadService = require("./thread.service");
+const Job = require("../jobs/job.model");
 
 exports.applyToJob = async (req, res) => {
   try {
-    const thread = await messageService.applyToJob(
-      req.params.jobId,
-      req.user.id,
-      req.user.role
-    );
+    const { jobId } = req.params;
 
-    sendSuccess(res, { conversationId: thread._id }, "Application sent");
-  } catch (error) {
-    sendError(res, error.message, 400);
-  }
-};
-const Thread = require("./thread.model");
+    const job = await Job.findById(jobId);
+    if (!job) return res.status(404).json({ message: "Job not found" });
 
-exports.getThreads = async (req, res) => {
-  try {
-    const Thread = require("./thread.model");
-    const Job = require("../jobs/job.model");
-    const Startup = require("../startups/startup.model");
-
-    const threads = await Thread.find({
-      developerId: req.user.id,
-    }).sort({ updatedAt: -1 });
-
-    const formatted = await Promise.all(
-      threads.map(async (t) => {
-        const job = await Job.findById(t.jobId);
-        const startup = await Startup.findById(t.startupId);
-
-        return {
-          _id: t._id,
-          withName: startup?.companyName || "Startup",
-          avatar: startup?.companyName?.charAt(0) || "S",
-          lastMessage: t.lastMessage || "No messages yet",
-          lastAt: new Date(t.updatedAt).toLocaleDateString(),
-          unread: 0,
-        };
-      })
-    );
-
-    res.json({
-      success: true,
-      data: formatted,
+    const thread = await threadService.findOrCreateThread({
+      jobId,
+      userId: req.user._id,
+      recruiterId: job.createdBy,
+      userMeta: {
+        name: req.user.name,
+        avatar: req.user.avatar,
+      },
     });
+
+    const message = await messageService.sendMessage(
+      thread._id,
+      req.user._id,
+      "candidate",
+      `Hi! I just applied for ${job.title}`
+    );
+
+    res.json({ thread, message });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Apply failed" });
   }
 };
 
 exports.getMessages = async (req, res) => {
   try {
-    const messages = await messageService.getThreadMessages(
-      req.params.threadId
-    );
+    const messages = await messageService.getMessages(req.params.threadId);
+    const threads = await threadService.getThreadsForUser(req.user._id);
 
-    sendSuccess(res, messages);
-  } catch (error) {
-    sendError(res, error.message, 500);
+    const thread = threads.find((t) => t._id.toString() === req.params.threadId);
+
+    res.json({ thread, messages });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load messages" });
+  }
+};
+
+exports.getThreads = async (req, res) => {
+  try {
+    const threads = await threadService.getThreadsForUser(req.user._id);
+    res.json(threads);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load threads" });
   }
 };
