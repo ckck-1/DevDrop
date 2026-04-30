@@ -15,7 +15,7 @@ const options = {
     },
     servers: [
       {
-        url: `http://devdrop-ds91.onrender.com`,
+        url: `https://devdrop-ds91.onrender.com`,
         description: 'Development server',
       },
       {
@@ -26,7 +26,7 @@ const options = {
     components: {
       securitySchemes: {
         bearerAuth: {
-          type: 'http',
+          type: 'https',
           scheme: 'bearer',
           bearerFormat: 'JWT',
         },
