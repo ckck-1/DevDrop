@@ -6,16 +6,20 @@ exports.applyToJob = async (req, res) => {
   try {
     const { jobId } = req.params;
 
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const job = await Job.findById(jobId);
     if (!job) return res.status(404).json({ message: "Job not found" });
 
     const thread = await threadService.findOrCreateThread({
       jobId,
       userId: req.user._id,
-      recruiterId: job.createdBy,
+      recruiterId:  job.startupId, // 🔥 fallback safety
       userMeta: {
-        name: req.user.name,
-        avatar: req.user.avatar,
+        name: req.user.name || "Unknown",
+        avatar: req.user.avatar || "", // 🔥 prevent crash
       },
     });
 
@@ -26,10 +30,13 @@ exports.applyToJob = async (req, res) => {
       `Hi! I just applied for ${job.title}`
     );
 
-    res.json({ thread, message });
+    return res.json({ thread, message });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Apply failed" });
+    console.error("🔥 applyToJob error:", err);
+    return res.status(500).json({
+      message: "Apply failed",
+      error: err.message, // 🔥 super important for debugging
+    });
   }
 };
 
