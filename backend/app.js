@@ -79,6 +79,7 @@ app.use('/api/', rateLimit);
 app.use('/api/v1/auth', require('./modules/auth/auth.routes'));
 app.use('/api/v1/users', require('./modules/users/user.routes'));
 app.use('/api/v1/developers', require('./modules/developers/developer.routes'));
+app.use("/api/v1/messages", require("./modules/messages/message.routes"));
 app.use('/api/v1/startups', require('./modules/startups/startup.routes'));
 app.use('/api/v1/jobs', require('./modules/jobs/job.routes'));
 app.use('/api/v1/applications', require('./modules/applications/application.routes'));
