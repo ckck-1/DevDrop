@@ -1,13 +1,30 @@
 const Application = require('./application.model');
 
 class ApplicationRepository {
+  // ========================
+  // CORE CRUD
+  // ========================
+
   async create(applicationData) {
     return await Application.create(applicationData);
   }
 
+  async findById(id) {
+    return await Application.findById(id);
+  }
+
+  async find(query) {
+    return Application.find(query);
+  }
+
+  // ========================
+  // JOB BASED
+  // ========================
+
   async findByJobId(jobId, pagination = {}) {
     const { skip = 0, limit = 20 } = pagination;
-    return await Application.find({ jobId })
+
+    return Application.find({ jobId })
       .populate('developerId')
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -15,36 +32,46 @@ class ApplicationRepository {
   }
 
   async countByJobId(jobId) {
-    return await Application.countDocuments({ jobId });
+    return Application.countDocuments({ jobId });
   }
 
- async findByDeveloperId(developerId, pagination = {}) {
-  const { skip = 0, limit = 20 } = pagination;
-  return await Application.find({ developerId })
-    .populate('jobId')
-    .populate('threadId') // Ensure this doesn't crash if null
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit);
-}
+  // ========================
+  // DEVELOPER BASED
+  // ========================
+
+  async findByDeveloperId(developerId, pagination = {}) {
+    const { skip = 0, limit = 20 } = pagination;
+
+    return Application.find({ developerId })
+      .populate('jobId')
+      .populate('threadId')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+  }
 
   async countByDeveloperId(developerId) {
-    return await Application.countDocuments({ developerId });
+    return Application.countDocuments({ developerId });
   }
 
+  // ========================
+  // STATUS UPDATE
+  // ========================
+
   async updateStatus(id, startupId, status) {
-    return await Application.findOneAndUpdate(
+    return Application.findOneAndUpdate(
       { _id: id, startupId },
       { status },
       { new: true }
     );
   }
-  find(query) {
-  return Application.find(query);
-}
 
-  async findById(id) {
-    return await Application.findById(id);
+  // ========================
+  // 🔥 ADD THIS (FIXES YOUR ERROR)
+  // ========================
+
+  async countDocuments(query) {
+    return Application.countDocuments(query);
   }
 }
 
