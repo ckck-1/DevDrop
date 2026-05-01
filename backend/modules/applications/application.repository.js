@@ -18,13 +18,11 @@ class ApplicationRepository {
     return await Application.countDocuments({ jobId });
   }
 
-  async findByDeveloperId(developerId, pagination = {}) {
+ async findByDeveloperId(developerId, pagination = {}) {
   const { skip = 0, limit = 20 } = pagination;
   return await Application.find({ developerId })
-    .populate({
-      path: 'jobId',
-      populate: { path: 'startupId', select: 'companyName logoUrl' } // Deep populate for the UI
-    })
+    .populate('jobId')
+    .populate('threadId') // Ensure this doesn't crash if null
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit);

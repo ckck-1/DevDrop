@@ -3,15 +3,16 @@ const { validate, sanitize } = require('../../utils/validate');
 
 // Application submission schema
 const applySchema = z.object({
-  jobId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid Job ID format" }), // Validates MongoDB ID
-  coverLetter: z.string().optional(),
-  resumeSnapshot: z.string().optional(),
+  // Matches the regex for a standard MongoDB ObjectId
+  jobId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid Job ID format" }),
+  coverLetter: z.string().max(2000).optional(),
+  resumeSnapshot: z.string().max(5000).optional(),
 });
 
-// Status update schema
+// Status update schema - MUST match the enum in application.model.js
 const statusSchema = z.object({
-  status: z.enum(['applied', 'reviewed', 'interview', 'offer', 'rejected', 'withdrawn'], {
-    message: 'Invalid status. Must be one of: applied, reviewed, interview, offer, rejected, withdrawn'
+  status: z.enum(['pending', 'reviewed', 'shortlisted', 'rejected', 'accepted'], {
+    message: 'Invalid status. Must match: pending, reviewed, shortlisted, rejected, or accepted'
   }),
 });
 
