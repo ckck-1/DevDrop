@@ -10,7 +10,7 @@ const { addEmailJob } = require('../../queues/notification.queue');
 const logger = require('../../utils/logger');
 
 // IMPORTANT: direct mongoose import for safe query building
-const Application = require('../models/application.model');
+const Application = require('./application.model');
 
 class ApplicationService {
 
