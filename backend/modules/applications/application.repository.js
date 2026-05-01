@@ -19,13 +19,16 @@ class ApplicationRepository {
   }
 
   async findByDeveloperId(developerId, pagination = {}) {
-    const { skip = 0, limit = 20 } = pagination;
-    return await Application.find({ developerId })
-      .populate('jobId')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-  }
+  const { skip = 0, limit = 20 } = pagination;
+  return await Application.find({ developerId })
+    .populate({
+      path: 'jobId',
+      populate: { path: 'startupId', select: 'companyName logoUrl' } // Deep populate for the UI
+    })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
+}
 
   async countByDeveloperId(developerId) {
     return await Application.countDocuments({ developerId });

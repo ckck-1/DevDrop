@@ -3,9 +3,9 @@ const { validate, sanitize } = require('../../utils/validate');
 
 // Application submission schema
 const applySchema = z.object({
-  jobId: z.string().min(1, { message: 'Job ID is required' }),
-  coverLetter: z.string().max(2000).optional(),
-  resumeSnapshot: z.string().max(5000).optional(),
+  jobId: z.string().regex(/^[0-9a-fA-F]{24}$/, { message: "Invalid Job ID format" }), // Validates MongoDB ID
+  coverLetter: z.string().optional(),
+  resumeSnapshot: z.string().optional(),
 });
 
 // Status update schema
