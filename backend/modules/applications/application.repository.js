@@ -39,6 +39,9 @@ class ApplicationRepository {
       { new: true }
     );
   }
+  find(query) {
+  return Application.find(query);
+}
 
   async findById(id) {
     return await Application.findById(id);
