@@ -1,3 +1,4 @@
+// backend/models/application.model.js
 const mongoose = require('mongoose');
 
 const applicationSchema = new mongoose.Schema({
@@ -11,21 +12,25 @@ const applicationSchema = new mongoose.Schema({
     ref: 'Developer',
     required: true,
   },
-  startupId: { // Denormalized for faster querying by startups
+  startupId: { 
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Startup',
     required: true,
+  },
+  // Added threadId to link applications directly to chats
+  threadId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Thread',
   },
   status: {
     type: String,
     enum: ['pending', 'reviewed', 'shortlisted', 'rejected', 'accepted'],
     default: 'pending'
   },
-  resumeSnapshot: String, // URL to resume at time of application
+  resumeSnapshot: String,
   coverLetter: String,
 }, { timestamps: true });
 
-// Prevent duplicate applications
 applicationSchema.index({ jobId: 1, developerId: 1 }, { unique: true });
 applicationSchema.index({ developerId: 1 });
 applicationSchema.index({ startupId: 1, status: 1 });
