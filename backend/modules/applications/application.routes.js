@@ -39,7 +39,7 @@ router.post('/', authorize('developer'), validateApply, applicationController.su
 
 /**
  * @swagger
- * /applications/my-apps:
+ * /api/v1/applications/my-apps:
  *   get:
  *     summary: Get developer's applications
  *     tags: [Applications]
@@ -66,7 +66,7 @@ router.get('/my-apps', authorize('developer'), applicationController.getDevelope
 
 /**
  * @swagger
- * /applications/job/{jobId}:
+ * /api/v1/applications/job/{jobId}:
  *   get:
  *     summary: Get applicants for a job
  *     tags: [Applications]
@@ -98,7 +98,7 @@ router.get('/job/:jobId', authorize('startup'), applicationController.getJobAppl
 
 /**
  * @swagger
- * /applications/{id}/status:
+ * /api/v1/applications/{id}/status:
  *   patch:
  *     summary: Update application status
  *     tags: [Applications]
